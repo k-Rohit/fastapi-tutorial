@@ -1,7 +1,12 @@
-from fastapi import FastAPI
-from fastapi.responses import HTMLResponse
+from fastapi import FastAPI, Request
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 
 app = FastAPI()
+
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+templates = Jinja2Templates(directory="templates")
 
 posts: list[dict] = [
     {
@@ -21,16 +26,14 @@ posts: list[dict] = [
     }
 ]
 
-@app.get("/",tags=["Home"], response_class=HTMLResponse, include_in_schema=False)
-@app.get("/posts", response_class=HTMLResponse, include_in_schema=False) # here we have stacked the decorators to make the same function respond to two different routes
+@app.get("/",tags=["Home"], include_in_schema=False)
+@app.get("/posts", include_in_schema=False) # here we have stacked the decorators to make the same function respond to two different routes
 
 # include_in_schema=False is used to hide the route from the documentation page
+def home(request: Request):
+    return templates.TemplateResponse(request, 'home.html', context={"posts": posts, "title" : "Home"})
 
-
-def home():
-    return f"<h1>{posts[0]['title']}</h1>"
-
-@app.get("/api/posts", response_class=HTMLResponse, tags=["Posts"])
+@app.get("/api/posts", tags=["Posts"])
 def get_posts():
     return posts
 
