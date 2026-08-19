@@ -45,7 +45,11 @@ def get_post_by_id(request: Request,
                 request,
                 'post.html',
                 {"post" : post, "title": title})
-        
+    # place outside the loop
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail=f"Post with id {post_id} not found"
+            )
             
 @app.get("/api/posts", tags=["Posts"])
 def get_posts():
