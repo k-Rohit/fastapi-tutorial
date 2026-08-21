@@ -14,5 +14,6 @@ class Base(DeclarativeBase):
     pass
 
 def get_db():
+    # creates a session and yields it
     with SessionLocal() as db:
         yield db
