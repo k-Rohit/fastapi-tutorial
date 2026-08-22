@@ -150,7 +150,7 @@ def update_user(user_id: int, user_update: UserUpdate, db: Annotated[Session, De
     db.refresh(user)
     return user
 
-@app.delete("/api/users/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+@app.delete("/api/users/{user_id}", status_code=status.HTTP_204_NO_CONTENT, tags=["User"])
 def delete_user(user_id: int, db: Annotated[Session, Depends(get_db)]):
     result = db.execute(select(models.User).where(models.User.id == user_id))
     user = result.scalars().first()
