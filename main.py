@@ -35,18 +35,21 @@ def home(request: Request, db: Annotated[Session,Depends(get_db)]):
     return templates.TemplateResponse(request, 'home.html', context={"posts": posts, "title" : "Home"})
 
 @app.get("/posts/{post_id}", include_in_schema=False)
-def get_post_by_id(request: Request, post_id: int, db: Annotated[Session,Depends(get_db)]):
+def post_page(
+    request: Request,
+    post_id: int,
+    db: Annotated[Session, Depends(get_db)],
+):
     result = db.execute(select(models.Post).where(models.Post.id == post_id))
     post = result.scalars().first()
     if post:
         title = post.title[:50]
         return templates.TemplateResponse(
-                request,
-                'post.html',
-                {"post" : post, "title": title})
-    # place outside the loop
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Post with id {post_id} not found")
-
+            request,
+            "post.html",
+            {"post": post, "title": title},
+        )
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="Post not found",)
 
 @app.get("/users/{user_id}/posts", include_in_schema=False, name="user_posts")
 def user_posts_page(request: Request, user_id: int, db: Annotated[Session,Depends(get_db)]):
@@ -193,5 +196,4 @@ def general_http_exception_handler(request: Request, exception: StarletteHTTPExc
         },
         status_code=exception.status_code
     )
-
 
