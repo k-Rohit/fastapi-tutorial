@@ -1,5 +1,4 @@
 from typing import Annotated
-from datetime import datetime
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request, HTTPException, status, Depends
@@ -47,7 +46,7 @@ app.include_router(posts.router, prefix="/api/posts", tags=["posts"])
 @app.get("/posts", include_in_schema=False, name="posts") # here we have stacked the decorators to make the same function respond to two different routes
 # include_in_schema=False is used to hide the route from the documentation page
 async def home(request: Request, db: Annotated[AsyncSession,Depends(get_db)]):
-    result = await db.execute(select(models.Post).options(selectinload(models.Post.author)))
+    result = await db.execute(select(models.Post).options(selectinload(models.Post.author)).order_by(models.Post.date_posted.desc()))
     posts = result.scalars().all()
     return templates.TemplateResponse(request, 'home.html', context={"posts": posts, "title" : "Home"})
 
@@ -80,7 +79,8 @@ async def user_posts_page(request: Request, user_id: int, db: Annotated[AsyncSes
     
     result = await db.execute(select(models.Post)
                               .options(selectinload(models.Post.author))
-                              .where(models.Post.user_id == user_id))
+                              .where(models.Post.user_id == user_id)
+                              .order_by(models.Post.date_posted.desc()))
     posts = result.scalars().all()
     return templates.TemplateResponse(
         request,
