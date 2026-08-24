@@ -41,7 +41,14 @@ async def create_user(user: UserCreate, db: Annotated[AsyncSession, Depends(get_
     await db.refresh(new_user) # reloads the object from the database
 
     return new_user
-
+@router.get("",response_model=list[UserResponse])
+async def get_users(db: Annotated[AsyncSession, Depends(get_db)]):
+    result = await db.execute(select(models.User))
+    users = result.scalars().all()
+    if not users:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No user found")
+    return users
+    
 @router.get("/{user_id}", response_model=UserResponse)
 async def get_user(user_id: int, db: Annotated[AsyncSession, Depends(get_db)]):
     result = await db.execute(select(models.User).where(models.User.id == user_id))
