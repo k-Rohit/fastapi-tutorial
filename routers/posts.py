@@ -56,19 +56,19 @@ async def update_post_full(post_id: int, post_data: PostCreate, db: Annotated[As
     if post_data.user_id != post.user_id:
         # if its not the same then check for whichever user they are trying to assign
         # the post that even exixts or not.
-        result = await db.execute(select(models.User).options(selectinload(models.Post.author)).where(models.User.id == post_data.user_id))
+        result = await db.execute(select(models.User).where(models.User.id == post_data.user_id))
         user = result.scalars().first()
 
         if not user:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
-        post.title = post_data.title
-        post.content = post_data.content
-        post.user_id = post_data.user_id
+    post.title = post_data.title
+    post.content = post_data.content
+    post.user_id = post_data.user_id
 
-        await db.commit()
-        await db.refresh(post, attribute_names=["author"])
-        return post
+    await db.commit()
+    await db.refresh(post, attribute_names=["author"])
+    return post
 
 @router.patch("/{post_id}", response_model=PostResponse)
 async def update_post_partial(post_id: int, post_data: PostUpdate, db: Annotated[AsyncSession,Depends(get_db)]):
@@ -81,9 +81,9 @@ async def update_post_partial(post_id: int, post_data: PostUpdate, db: Annotated
     for field, value in update_data.items():
         setattr(post, field, value)
 
-        await db.commit()
-        await db.refresh(post, attribute_names=["author"])
-        return post
+    await db.commit()
+    await db.refresh(post, attribute_names=["author"])
+    return post
 
 
 @router.delete("/{post_id}", status_code=status.HTTP_204_NO_CONTENT)
