@@ -1,19 +1,31 @@
 from typing import Annotated
+from datetime import timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import select
+from fastapi.security import OAuth2PasswordRequestForm
+from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 import models
 from database import get_db
-from schemas import PostResponse, UserUpdate, UserResponse, UserCreate
+from schemas import PostResponse, UserUpdate, UserPublic, UserPrivate, UserCreate, Token
+
+from auth import (
+create_access_token, 
+ hash_password, 
+ oauth2_scheme, 
+ verify_access_token, 
+ verify_password
+)
+
+from config import settings
 
 router = APIRouter()
 
-@router.post("", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=UserPrivate, status_code=status.HTTP_201_CREATED)
 async def create_user(user: UserCreate, db: Annotated[AsyncSession, Depends(get_db)]):
-    result = await db.execute(select(models.User).where(models.User.username == user.username))
+    result = await db.execute(select(models.User).where(func.lower(models.User.username) == user.username.lower()))
     existing_user = result.scalars().first()
 
     if existing_user:
@@ -22,7 +34,7 @@ async def create_user(user: UserCreate, db: Annotated[AsyncSession, Depends(get_
     detail=f"User with username '{user.username}' already exists."
 )
 
-    result = await db.execute(select(models.User).where(models.User.email == user.email))
+    result = await db.execute(select(models.User).where(func.lower(models.User.email) == user.email.lower()))
     existing_email = result.scalars().first()
 
     if existing_email:
@@ -33,7 +45,8 @@ async def create_user(user: UserCreate, db: Annotated[AsyncSession, Depends(get_
 
     new_user = models.User(
         username = user.username,
-        email = user.email,
+        email = user.email.lower(),
+        password_hash=hash_password(user.password)
     )
 
     db.add(new_user) # stages the insert
@@ -41,6 +54,9 @@ async def create_user(user: UserCreate, db: Annotated[AsyncSession, Depends(get_
     await db.refresh(new_user) # reloads the object from the database
 
     return new_user
+
+
+
 @router.get("",response_model=list[UserResponse])
 async def get_users(db: Annotated[AsyncSession, Depends(get_db)]):
     result = await db.execute(select(models.User))
