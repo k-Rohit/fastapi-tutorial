@@ -102,7 +102,7 @@ async def login_page(request: Request):
 async def register_page(request: Request):
     return templates.TemplateResponse(
         request,
-        "login.html",
+        "register.html",
         {"title": "Login"},
     )
 
