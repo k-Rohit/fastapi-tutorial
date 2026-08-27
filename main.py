@@ -87,7 +87,25 @@ async def user_posts_page(request: Request, user_id: int, db: Annotated[AsyncSes
         'user_posts.html',
         {"posts": posts, "user" : user, "title" : f"{user.username}'s Posts"}
     )
- 
+
+## login and register routes - 
+
+@app.get("/login", include_in_schema=False)
+async def login_page(request: Request):
+    return templates.TemplateResponse(
+        request,
+        "login.html",
+        {"title": "Login"},
+    )
+    
+@app.get("/register", include_in_schema=False)
+async def register_page(request: Request):
+    return templates.TemplateResponse(
+        request,
+        "login.html",
+        {"title": "Login"},
+    )
+
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exception: RequestValidationError):
     if request.url.path.startswith("/api"):
