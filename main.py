@@ -105,6 +105,14 @@ async def register_page(request: Request):
         "register.html",
         {"title": "Login"},
     )
+    
+@app.get("/account", include_in_schema=False)
+async def account_page(request: Request):
+    return templates.TemplateResponse(
+        request,
+        "account.html",
+        {"title": "Account"},
+        )
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exception: RequestValidationError):

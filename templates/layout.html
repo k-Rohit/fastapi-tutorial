@@ -81,14 +81,13 @@
                         <div class="navbar-nav">
                             <!-- Shown when logged in (hidden by default, shown via JS) -->
                             <div id="loggedInNav" class="d-none">
-                                <span class="navbar-text mb-2 mb-md-0 me-md-3" id="usernameText"></span>
                                 <button class="btn btn-outline-light mb-2 mb-md-0 me-md-2"
                                         type="button"
                                         data-bs-toggle="modal"
                                         data-bs-target="#createPostModal">New Post</button>
-                                <button class="btn btn-light mb-2 mb-md-0 me-md-3"
-                                        type="button"
-                                        id="navbarLogoutBtn">Logout</button>
+                                <a class="btn btn-light mb-2 mb-md-0 me-md-3"
+                                   href="{{ url_for("account_page") }}"
+                                   id="accountBtn">Account</a>
                             </div>
                             <!-- Shown when logged out -->
                             <div id="loggedOutNav">
@@ -266,28 +265,27 @@
         </script>
         <!-- Auth State Management -->
         <script type="module">
-            import { getCurrentUser, logout } from '/static/js/auth.js';
+            import { getCurrentUser } from '/static/js/auth.js';
 
             async function updateAuthUI() {
                 const user = await getCurrentUser();
                 const loggedInNav = document.getElementById('loggedInNav');
                 const loggedOutNav = document.getElementById('loggedOutNav');
-                const usernameText = document.getElementById('usernameText');
+                const accountBtn = document.getElementById('accountBtn');
 
                 if (user) {
                     loggedInNav.classList.remove('d-none');
                     loggedInNav.classList.add('d-flex');
                     loggedOutNav.classList.add('d-none');
-                    usernameText.textContent = user.username;
+                    accountBtn.textContent = user.username;
                 } else {
                     loggedInNav.classList.add('d-none');
                     loggedInNav.classList.remove('d-flex');
                     loggedOutNav.classList.remove('d-none');
-                    usernameText.textContent = '';
+                    accountBtn.textContent = 'Account';
                 }
             }
 
-            document.getElementById('navbarLogoutBtn').addEventListener('click', logout);
             updateAuthUI();
         </script>
         <!-- Create Post Form Handler -->
