@@ -16,9 +16,11 @@ import models
 
 from database import Base, engine, get_db
 
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
+
+from config import settings
 
 
 # When the application starts, create the database tables. Then pause at yield while the application runs. When the application is shutting down, resume after yield and dispose of the database engine.
@@ -46,9 +48,28 @@ app.include_router(posts.router, prefix="/api/posts", tags=["posts"])
 @app.get("/posts", include_in_schema=False, name="posts") # here we have stacked the decorators to make the same function respond to two different routes
 # include_in_schema=False is used to hide the route from the documentation page
 async def home(request: Request, db: Annotated[AsyncSession,Depends(get_db)]):
-    result = await db.execute(select(models.Post).options(selectinload(models.Post.author)).order_by(models.Post.date_posted.desc()))
+    
+    count_resutls = await db.execute(select(func.count()).select_from(models.Post))
+    total = count_resutls.scalar() or 0
+    
+    result = await db.execute(
+        select(models.Post)
+        .options(selectinload(models.Post.author))
+        .order_by(models.Post.date_posted.desc())
+        .limit(settings.posts_per_page)
+    )
     posts = result.scalars().all()
-    return templates.TemplateResponse(request, 'home.html', context={"posts": posts, "title" : "Home"})
+    
+    has_more = len(posts) < total
+    
+    return templates.TemplateResponse(request, 'home.html', 
+                context={
+                "posts": posts, 
+                "title" : "Home",
+                "limit": settings.posts_per_page,
+                "has_more": has_more
+                }
+    )
 
 @app.get("/posts/{post_id}", include_in_schema=False)
 async def post_page(
