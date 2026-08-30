@@ -47,3 +47,13 @@ class Post(Base):
     )
     
     author: Mapped[User] = relationship(back_populates="posts")
+
+
+class PasswordResetToken(Base):
+    
+    __tablename__ = "password_reset_tokens"
+    
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False)
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True, nullable=False)
+    
