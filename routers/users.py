@@ -1,20 +1,27 @@
 from typing import Annotated
-from datetime import timedelta
+from datetime import timedelta, UTC, datetime
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
+from sqlalchemy import delete as sql_delete
 
 import models
 from database import get_db
-from schemas import PostResponse, UserUpdate, UserPublic, UserPrivate, UserCreate, Token
+from schemas import (PostResponse, UserUpdate, UserPublic, 
+                     UserPrivate, UserCreate, Token, 
+                     ForgotPasswordRequest, ResetPasswordRequest, ChangePasswordRequest)
+
+from email_utils import send_password_reset_email
 
 from auth import (
 create_access_token, 
  hash_password, 
  verify_password,
+ generate_reset_token,
+ hash_reset_token,
  CurrentUser
 )
 
