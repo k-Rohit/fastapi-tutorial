@@ -293,4 +293,3 @@ async def delete_user(user_id: int, current_user: CurrentUser, db: Annotated[Asy
 
     await db.delete(user)
     await db.commit()
-
